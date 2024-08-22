@@ -27,9 +27,9 @@ Downloads resumes of valid members using OutputfileCleaner.py's cleaned_outpufil
 Uses resumes & bios from ResumeDownloader.py, interface with OpenAI GPT 4.0-Turbo, prints result & saves into GPTout.json.<br /><br />
 
 ## III: Future TODOs:
-TODO:
-# # [done] Copying latest files from WildApricot "SiteUploads" to local directory: Try to make it update once every 6 hours in live build under a different file
-# # [done] Extracting data from DOCX resume files
-# # Look into making the resume retrieval as a tool not as a message.
-# # Look into making a main.py file for flask app. For example, download files, summarise resumecache every 6 hours.
-# # Drawback: Look into batch translating. Some people are missing when using multithreading chat completions GPT for summarising. Also chat completions will be unreliable in the future. Avg tokens sent for summary are ~220K. Batch will be better.
+###TODO:
+[done] Copying latest files from WildApricot "SiteUploads" to local directory: Try to make it update once every 6 hours in live build under a different file
+[done] Extracting data from DOCX resume files
+Look into making the resume retrieval as a tool not as a message.
+Look into making a main.py file for flask app. For example, download files, summarise resumecache every 6 hours.
+Drawback: Look into batch translating. Some people are missing when using multithreading chat completions GPT for summarising. Also chat completions will be unreliable in the future. Avg tokens sent for summary are ~220K. Batch will be better.
