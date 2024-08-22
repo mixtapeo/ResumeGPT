@@ -21,18 +21,15 @@ account_id=<><br /><br />
 ## III. Run these in order:
 ### 1. Run WaApi.py: 
 Get outputfile.json with full contact list (has info about membership, address, phone number, name, etc.).<br />
-### 2. Run OutputfileCleaner.py: 
-Cleans outputfile of credential info, and invalid users (dont work at/for company anymore).<br />
-### 3. Run ResumeDownloader.py: 
+### 2. Run ResumeDownloader.py: 
 Downloads resumes of valid members using OutputfileCleaner.py's cleaned_outpufile.json.<br />
-### 4. Run GPT.py: 
+### 3. Run GPT.py: 
 Uses resumes & bios from ResumeDownloader.py, interface with OpenAI GPT 4.0-Turbo, prints result & saves into GPTout.json.<br /><br />
 
 ## III: Future TODOs:
 ### TODO:
-1. [DONE] Check if contact is still at Company or not. If not, dont download resume. -> by using cleaned outputfile.<br />
-2. [Fixed: Processed chunks of files, summarised each at the end] Currently only using bios, not resume. Resume needs a lot more tokens (openAI) rate limit.<br />
-3. Found some useless / random pdfs as well, which arent 'resumes' just references or slides of companies. Try to run a check somehow using WaApi's 'GetInfo' function and see if valid name type stuff.<br />
-4. Copying latest files from WildApricot "SiteUploads" to local directory: Try to make it update once every 6 hours in live build under a different file.<br />
-5. [Can be done docx library] Extracting data from DOCX resume files by converting to PDF or straight to txt.<br />
-6. Main.py with GUI to execute all the required files automagically.
+# # [done] Copying latest files from WildApricot "SiteUploads" to local directory: Try to make it update once every 6 hours in live build under a different file
+# # [done] Extracting data from DOCX resume files
+# # Look into making the resume retrieval as a tool not as a message.
+# # Look into making a main.py file for flask app. For example, download files, summarise resumecache every 6 hours.
+# # Drawback: Look into batch translating. Some people are missing when using multithreading chat completions GPT for summarising. Also chat completions will be unreliable in the future. Avg tokens sent for summary are ~220K. Batch will be better.
