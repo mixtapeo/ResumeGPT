@@ -19,11 +19,9 @@ openai_api_key=<><br />
 account_id=<><br /><br />
 
 ## III. Run these in order:
-### 1. Run WaApi.py: 
-Get outputfile.json with full contact list (has info about membership, address, phone number, name, etc.).<br />
-### 2. Run ResumeDownloader.py: 
+### 1. Run ResumeDownloader.py: 
 Downloads resumes of valid members using OutputfileCleaner.py's cleaned_outpufile.json.<br />
-### 3. Run GPT.py: 
+### 2. Run GPT.py: 
 Uses resumes & bios from ResumeDownloader.py, interface with OpenAI GPT 4.0-Turbo, prints result & saves into GPTout.json.<br /><br />
 
 ## III: Future TODOs:
