@@ -2,7 +2,7 @@
 A GPT 4.0 Mini powered recommendation of top 5 candidates for a given list of requirements. Uses WildApricot to get resumes / bios, WildApricot does not provide files from API; we must utilise member ID's, match to file ID, get {base_url}/attachments/{file_id} for each member.
 ## Instructions:
 ### Pre-requisites:
-Make sure python 3.12 is installed on os
+Make sure python 3.12 is installed on os.
 
 ### I. Clone / download this Repo.
 Run these commands in root folder:
@@ -18,10 +18,7 @@ wildapiricot_api_key=<><br />
 openai_api_key=<><br />
 account_id=<><br /><br />
 
-## III. Run these in order:
-### 1. Run ResumeDownloader.py: 
-Downloads resumes of valid members using OutputfileCleaner.py's cleaned_outpufile.json.<br />
-### 2. Run GPT.py: 
+### III. Run GPT.py: 
 Uses resumes & bios from ResumeDownloader.py, interface with OpenAI GPT 4.0-Turbo, prints result & saves into GPTout.json.<br /><br />
 
 ## III: Future TODOs:
@@ -30,3 +27,6 @@ Uses resumes & bios from ResumeDownloader.py, interface with OpenAI GPT 4.0-Turb
 Look into making the resume retrieval as a tool not as a message.<br />
 Look into making a main.py file for flask app. For example, download files, summarise resumecache every 6 hours.<br />
 Drawback: Look into batch translating. Some people are missing when using multithreading chat completions GPT for summarising. Also chat completions will be unreliable in the future. Avg tokens sent for summary are ~220K. Batch will be better.<br />
+
+## App Flow:
+<p align="center"> <img src="https://github.com/user-attachments/assets/44b8c8f5-0b43-445e-b432-4ebcfed9bf96" /> </p>
