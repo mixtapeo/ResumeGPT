@@ -27,7 +27,6 @@ Downloads resumes of valid members using OutputfileCleaner.py's cleaned_outpufil
 Uses resumes & bios from ResumeDownloader.py, interface with OpenAI GPT 4.0-Turbo, prints result & saves into GPTout.json.<br /><br />
 
 ## III: Future TODOs:
-### TODO:
 [done] Copying latest files from WildApricot "SiteUploads" to local directory: Try to make it update once every 6 hours in live build under a different file
 [done] Extracting data from DOCX resume files
 Look into making the resume retrieval as a tool not as a message.
