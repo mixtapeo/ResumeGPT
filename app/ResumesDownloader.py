@@ -56,54 +56,47 @@ class WildApricotAPI:
         try:
             url = f'{self.base_url}/attachments/{file_id}'
             response = requests.get(url, headers=self.get_headers())
-            #print(f'Trying {file_id}') # Debug
+            print(f'Trying {file_id}') # Debug
             if response.status_code == 200:
-                if not os.path.exists(folder_path):
-                    os.makedirs(folder_path)
-
-                file_name = f'{file_id}.pdf'
-
-                if file_name not in folder_path:
-                    file_path = os.path.join(folder_path, file_name)
-                    with open(file_path, 'wb') as file:
-                        file.write(response.content)
-                    # print(f'File saved as {file_path}') # Debug
-
-                else:
-                    print("Skipped. File already exists.")
-        except:
-            raise
+                file_path = os.path.join(folder_path, f'{file_id}.pdf')
+                with open(file_path, 'wb') as file:
+                    file.write(response.content)
+                print(f'File saved as {file_path}') # Debug
+        except Exception as e:
+            print(e)
 
 def download_all_files():
     account_id = '322042'
     api_key = os.environ.get('wildapiricot_api_key')
     api = WildApricotAPI(api_key, account_id)
-    local_path = os.path.join(os.getcwd(), 'files')
-    xml_file_path = 'Members.xml'
+    local_path = os.path.join((os.path.join(os.getcwd(), 'app')), 'files') #./app/files
+    xml_file_path = os.path.join((os.path.join(os.getcwd(),'app')), 'Members.xml') #./app/Members.xml
 
     file_ids = api.extract_file_ids(xml_file_path)
 
     ratelimitThrottle = True # If file is skipped, do not wait 1 second.
-
+    
     print('Will take a while...')
     for file_id_set in file_ids:
         if ratelimitThrottle == True:
             time.sleep(1) # Theres some kind of rate limit on WildApricot, though they don't disclose it.
         for resume_id in file_id_set['Resume']:
             resume_file = os.path.join(local_path, resume_id.strip() + '.pdf')
-            if not os.path.exists(resume_file):
+            if not os.path.exists(resume_file) or os.path.exists(resume_file.replace('.pdf', '.doc')): 
                 api.download_attachment(resume_id.strip(), local_path)
                 ratelimitThrottle=True
             else:
-                ratelimitThrottle=False
+                ratelimitThrottle=False # If file doesnt exist in the directory, skip. No need to pause later, as the file id is taken from XML and not WildApricot.
+                print(f'Skipped. {resume_file} already exists.')
 
         for bio_id in file_id_set['Bio']:
             bio_file = os.path.join(local_path, bio_id.strip() + '.pdf')
-            if not os.path.exists(bio_file):
+            if not (os.path.exists(bio_file) or os.path.exists(bio_file.replace('.pdf', '.doc'))):
                 api.download_attachment(bio_id.strip(), local_path)
                 ratelimitThrottle=True
             else:
                 ratelimitThrottle=False
+                print(f'Skipped. {bio_file} already exists.')
     print('DONE!')
             
 if __name__ == "__main__":

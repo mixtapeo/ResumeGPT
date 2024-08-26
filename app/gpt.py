@@ -1,4 +1,5 @@
-# Uses resumes & bios from ResumeDownloader.py, interface with OpenAI GPT 4.0-Turbo, prints result & saves into GPTout.json.
+#r
+#  Uses resumes & bios from ResumeDownloader.py, interface with OpenAI GPT 4.0-Turbo, prints result & saves into GPTout.json.
 
 # TODO:
 # # [done] Copying latest files from WildApricot "SiteUploads" to local directory: Try to make it update once every 6 hours in live build under a different file
@@ -92,7 +93,7 @@ class GPT:
                     content.append({"filename": filename, "text": text})
             return content
     
-    def gpt_request(self, message, *conversation_history):
+    def gpt_request(self, data, message, *conversation_history):
         """
         Send requests to GPT-4 with the provided chunks of text and conversation history.
         Args:
@@ -146,53 +147,69 @@ class GPT:
             #json.dump({"content": content}, file, indent=4) # Debug: Compare input from files to output by GPT
         return summary
 
-def refresh_summary():
-    # Save to file for debug
-    with open("resumeCache.txt", "w") as file:
-        file.truncate()
+    def refresh_summary(self):
+        # Save to file for debug
+        with open("resumeCache.txt", "w") as file:
+            file.truncate()
 
-    # Path to local directory containing resumes
-    directory = os.path.join(os.getcwd(), 'files')
-    resumes = App.load_files(directory)
-    resume_texts = [resume['text'] for resume in resumes]
+        # Path to local directory containing resumes
+        directory = os.path.join((os.path.join(os.getcwd(), 'app')), 'files') #./app/files
+        resumes = self.load_files(directory)
+        resume_texts = [resume['text'] for resume in resumes]
 
-    # Separate resume text into chunks to summarize
-    chunks = np.array_split(resume_texts, 3) # Change this number to change number of threads used.
-    
-    # Process each chunk using multithreading
-    data = ''
-    with ThreadPoolExecutor(len(chunks)) as executor:
-        data = executor.map(App.summarize, chunks)
-    
-    return data
+        # Separate resume text into chunks to summarize
+        chunks = np.array_split(resume_texts, 3) # Change this number to change number of threads used.
+        
+        # Process each chunk using multithreading
+        data = ''
+        with ThreadPoolExecutor(len(chunks)) as executor:
+            data = executor.map(self.summarize, chunks)
+        
+        return data
 
-def start_request(message, data, conversation_history):
-    """
-    Process resumes and handle conversation with GPT.
+    def start_request(self, message, data, conversation_history):
+        """
+        Process resumes and handle conversation with GPT.
 
-    1. Loads files as text into {resumes}
-    2. Summarise all resume content to optimise tokens sent. Stored in resumeCache.json.
-    3. Send user message & summarised json to GPT for response.
-    """
+        1. Loads files as text into {resumes}
+        2. Summarise all resume content to optimise tokens sent. Stored in resumeCache.json.
+        3. Send user message & summarised json to GPT for response.
+        """
 
-    # Get the response from GPT, add to conversation history.
-    reply, message = App.gpt_request(message, data, conversation_history)
-    conversation_history_update = ({"role": "user", "content": message}, {"role": "assistant", "content": reply})
-    
-    # Save the response to a JSON file
-    with open('GPTout.json', 'w') as file:
-        json.dump({"GPTout": reply}, file, indent=4)
-    
-    # Pretty print the final result
-    with open('GPTout.json', 'r') as j:
-        contents = json.loads(j.read())
-    build_direction = "LEFT_TO_RIGHT"
-    table_attributes = {"style": "width:100%"}
-    # print(json2table.convert(contents, build_direction=build_direction, table_attributes=table_attributes))
+        # Get the response from GPT, add to conversation history.
+        reply, message = self.gpt_request(self, message, data, conversation_history)
+        conversation_history_update = ({"role": "user", "content": message}, {"role": "assistant", "content": reply})
+        
+        # Save the response to a JSON file
+        with open('GPTout.json', 'w') as file:
+            json.dump({"GPTout": reply}, file, indent=4)
+        
+        # Pretty print the final result
+        with open('GPTout.json', 'r') as j:
+            contents = json.loads(j.read())
+        build_direction = "LEFT_TO_RIGHT"
+        table_attributes = {"style": "width:100%"}
+        # print(json2table.convert(contents, build_direction=build_direction, table_attributes=table_attributes))
 
-    return conversation_history_update
+        return conversation_history_update
 
-if __name__ == "__main__":
+    def user_start(self):
+        """
+        User interface for starting the program.
+        """
+        # Load resumeCache.txt data
+        with open('resumeCache.txt') as f:
+                data = f.readlines()
+
+        # Loop forever
+        stop = True
+        conversation_history = []
+        while stop:
+            message = input('Enter prompt: ')
+            conversation_history += self.start_request(message, data, conversation_history) # returns context
+            
+def dev_start():
+    App = GPT(os.getenv('OPENAI_API_KEY'))
     # Check for latest resumes
     inp = input('Check all files? y/n: ')
     if inp in ('y', 'Y'):
@@ -201,13 +218,11 @@ if __name__ == "__main__":
     # OpenAI API client + other initializations
     print('Waking up GPT...')
     load_dotenv()
-    api_key = os.environ.get('openai_api_key')
-    App = GPT(api_key)
 
     # Summarise resumes / files
     inp = input('Refresh summary table? [Might make reuslts more accurate, but will take longer] y/n: ')
     if inp in ('y', 'Y'):
-        data = refresh_summary()
+        data = App.refresh_summary()
         print("Summary cache refreshed.")
     else:
         print('Loaded previous data.')
@@ -220,7 +235,10 @@ if __name__ == "__main__":
     while stop:
         #start_time = datetime.datetime.now() # debug runtime
         message = input('Enter prompt: ')
-        conversation_history += start_request(message, data, conversation_history) # returns context
+        conversation_history += App.start_request(message, data, conversation_history) # returns context
 
         #runtime = f'{datetime.datetime.now() - start_time}'
         #print(runtime) # Debug
+
+if __name__ == "__main__":
+    dev_start()
