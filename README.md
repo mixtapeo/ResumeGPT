@@ -9,6 +9,7 @@ Make sure python 3.12 is installed on os.
 ### I. Clone / download this Repo.
 Run these commands in root folder:<br> </br>
 py -3.12 -m venv .venv <br> </br>
+Activate your venv. Google for commands for your OS.<br> </br>
 pip install -r requirements.txt
 
 ### II. Make '.env' file.
