@@ -10,7 +10,7 @@ py -3.12 -m venv .venv
 pip install -r requirements.txt
 
 ### II. Make '.env' file.
-1. Make a new file (can be anything). Rename file (including extension of the file, make sure you are able to view the extensions) to '.env'.
+1. Make a new file (can be anything) in root directory. Rename file (including extension of the file, make sure you are able to view the extensions) to '.env'.
 2. Open with a text editor.
 3. Put OpenAI API key, WildApricot API key, WildApricot Account number into .env file. </br>
 3. Example of contents:<br /><br />
@@ -19,13 +19,10 @@ openai_api_key=<><br />
 account_id=<><br /><br />
 
 ### III. Run GPT.py: 
-Uses resumes & bios from ResumeDownloader.py, interface with OpenAI GPT 4.0-Turbo, prints result & saves into GPTout.json.<br /><br />
+Run main.py (the flask app), open index.html (./app/static), can now use.
+- Uses resumes & bios created by ResumeDownloader.py, message on index.html is sent as an api request to flask app (main.py) that uses python backend (gpt.py) to interface with OpenAI GPT 4.0-Turbo, manages conversation history and data pulling, prints result & saves into GPTout.json.<br /><br />
 
 ## III: Future TODOs:
-[done] Copying latest files from WildApricot "SiteUploads" to local directory: Try to make it update once every 6 hours in live build under a different file<br />
-[done] Extracting data from DOCX resume files<br />
-Look into making the resume retrieval as a tool not as a message.<br />
-Look into making a main.py file for flask app. For example, download files, summarise resumecache every 6 hours.<br />
 Drawback: Look into batch translating. Some people are missing when using multithreading chat completions GPT for summarising. Also chat completions will be unreliable in the future. Avg tokens sent for summary are ~220K. Batch will be better.<br />
 
 ## App Flow:
