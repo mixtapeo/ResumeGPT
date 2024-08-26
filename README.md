@@ -1,5 +1,7 @@
 # ResumeGPT
-A GPT 4.0 Mini powered recommendation of top 5 candidates for a given list of requirements. Uses WildApricot to get resumes / bios, WildApricot does not provide files from API; we must utilise member ID's, match to file ID, get {base_url}/attachments/{file_id} for each member.
+A GPT 4.0 Mini powered chatbot, with  Company's resumes. Includes summarising resumes, flask web server.
+Uses WildApricot to get resumes / bios.
+
 ## Instructions:
 ### Pre-requisites:
 Make sure python 3.12 is installed on os.
@@ -27,3 +29,6 @@ Drawback: Look into batch translating. Some people are missing when using multit
 
 ## App Flow:
 <p align="center"> <img src="https://github.com/user-attachments/assets/44b8c8f5-0b43-445e-b432-4ebcfed9bf96" /> </p>
+
+## Notes:
+WildApricot does not provide files from API; we must utilise member ID's, match to file ID, get {base_url}/attachments/{file_id} for each member.
