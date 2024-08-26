@@ -24,6 +24,6 @@ Run main.py (the flask app), open index.html (./app/static), can now use.
 
 ## III: Future TODOs:
 Drawback: Look into batch translating. Some people are missing when using multithreading chat completions GPT for summarising. Also chat completions will be unreliable in the future. Avg tokens sent for summary are ~220K. Batch will be better.<br />
-
+Automating resumeCache and downloading resumes. Currently doesnt do this, have to manually run gpt.py.
 ## App Flow:
 <p align="center"> <img src="https://github.com/user-attachments/assets/44b8c8f5-0b43-445e-b432-4ebcfed9bf96" /> </p>
