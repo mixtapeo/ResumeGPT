@@ -1,8 +1,9 @@
 # ResumeGPT
-A GPT 4.0 Mini powered chatbot, with  Company's resumes. Includes summarising resumes, flask web server.
+A GPT 4.0 Mini powered chatbot, with  Company's resumes. Includes summarising resumes, flask web server. <br> </br>
 Uses WildApricot to get resumes / bios.
+Deploy to AWS / Azure / Heroku, iframe embed to WildApricot as custom html.
 
-## Instructions:
+## Installation:
 ### Pre-requisites:
 Make sure python 3.12 is installed on os.
 
