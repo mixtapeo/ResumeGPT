@@ -10,7 +10,7 @@ py -3.12 -m venv .venv
 pip install -r requirements.txt
 
 ### II. Make '.env' file.
-1. Make a new file (can be anything). Rename file (including extension of the file, make sure you are able to view the extensions) to '.env'.
+1. Make a new file (can be anything) in root directory. Rename file (including extension of the file, make sure you are able to view the extensions) to '.env'.
 2. Open with a text editor.
 3. Put OpenAI API key, WildApricot API key, WildApricot Account number into .env file. </br>
 3. Example of contents:<br /><br />
@@ -18,13 +18,11 @@ wildapiricot_api_key=<><br />
 openai_api_key=<><br />
 account_id=<><br /><br />
 
-## III. Run these in order:
-### 1. Run WaApi.py: 
-Get outputfile.json with full contact list (has info about membership, address, phone number, name, etc.).<br />
-### 2. Run ResumeDownloader.py: 
-Downloads resumes of valid members using OutputfileCleaner.py's cleaned_outpufile.json.<br />
-### 3. Run GPT.py: 
-Uses resumes & bios from ResumeDownloader.py, interface with OpenAI GPT 4.0-Turbo, prints result & saves into GPTout.json.<br /><br />
+## III. Use chatbot site interface.
+### 1. Run flask app: 
+Run main.py
+### 2. Use site:
+Open index.html, start chatting!
 
 ## III: Future TODOs:
 [done] Copying latest files from WildApricot "SiteUploads" to local directory: Try to make it update once every 6 hours in live build under a different file<br />
