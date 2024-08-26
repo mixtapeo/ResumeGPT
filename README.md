@@ -20,7 +20,7 @@ account_id=<><br /><br />
 
 ### III. Run GPT.py: 
 Run main.py (the flask app), open index.html (./app/static), can now use.
-Uses resumes & bios from ResumeDownloader.py, interface with OpenAI GPT 4.0-Turbo, prints result & saves into GPTout.json.<br /><br />
+- Uses resumes & bios created by ResumeDownloader.py, message on index.html is sent as an api request to flask app (main.py) that uses python backend (gpt.py) to interface with OpenAI GPT 4.0-Turbo, manages conversation history and data pulling, prints result & saves into GPTout.json.<br /><br />
 
 ## III: Future TODOs:
 Drawback: Look into batch translating. Some people are missing when using multithreading chat completions GPT for summarising. Also chat completions will be unreliable in the future. Avg tokens sent for summary are ~220K. Batch will be better.<br />
