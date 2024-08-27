@@ -1,12 +1,13 @@
-from flask import Flask, request, jsonify
+
+from flask import Flask, request, jsonify, session
 from gpt import GPT
 import os
 from dotenv import load_dotenv
-import threading
 from flask_cors import CORS  # Import CORS
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+app.secret_key = os.urandom(24)  # Set a secret key for the session
 
 # Load environment variables
 load_dotenv()
@@ -20,31 +21,38 @@ def home():
 
 @app.route('/updatefiles', methods=['GET'])
 def update_files():
-    def update():
-        gpt_instance.update_files()
-
-    thread = threading.Thread(target=update)
-    thread.start()
-    return jsonify({"message": "Files update started successfully"}), 200
+    gpt_instance.update_files()
+    return "Files update started successfully"
 
 @app.route('/refreshcache', methods=['GET'])
 def update_resumecache():
     gpt_instance.refresh_summary()
-    return jsonify({"message": "Resume cache refreshed successfully"}), 200
+    return "Resume cache refreshed successfully"
 
 @app.route('/api/chat', methods=['POST'])
 def start_program():
+    """
+    User interface for starting the program.
+    """
     message = request.json.get('message', '')
+
     if not message:
         return jsonify({"error": "No message provided"}), 400
 
+    # Load resumeCache.txt data
     with open('resumeCache.txt') as f:
         data = f.readlines()
 
-    conversation_history = []
-    conversation_history = gpt_instance.start_request(message, data, conversation_history)
-
-    return jsonify({"conversation_history": conversation_history}), 200
+    # Retrieve conversation history from session
+    conversation_history = session.get('conversation_history', [])
+    
+    # Get the response from GPT
+    conversation_history_update = gpt_instance.start_request(message, data, conversation_history)
+    
+    # Update the session conversation history
+    session['conversation_history'] = conversation_history_update
+    print(f'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA {conversation_history_update}')
+    return jsonify({"conversation_history": conversation_history_update}), 200
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000, host='0.0.0.0', threaded=True)
