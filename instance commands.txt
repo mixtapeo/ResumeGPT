@@ -1,0 +1,48 @@
+sudo vi /etc/systemd/system/app.service
+
+[Unit]
+Description=Gunicorn instance for a resume gpt app
+After=network.target
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/ResumeGPT
+ExecStart=/home/ubuntu/ResumeGPT/app/venv/bin/gunicorn -b localhost:8000 app:main
+Restart=always
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl daemon-reload
+sudo systemctl start app
+sudo systemctl enable app
+
+[Unit]
+Description=Gunicorn instance for a simple hello world app
+After=network.target
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/ResumeGPT/app
+ExecStart=/home/ubuntu/ResumeGPT/app/venv/bin/gunicorn -b localhost:8000 app:app
+Restart=always
+[Install]
+WantedBy=multi-user.target
+
+
+
+
+
+sudo apt-update
+pip install python3
+clone repo
+navigate into resumegpt
+make venv by python -m venv venv
+activate
+export all env vars (idk how to use .env ubuntu + dotenv not working)
+pip install gunicorn for prod ready server
+create symlink:
+sudo vi /etc/systemd/system/helloworld.service
+esc, :, wq!
+sudo systemctl daemon-reload
+sudo systemctl start helloworld
+sudo systemctl enable helloworld

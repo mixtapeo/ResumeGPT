@@ -1,0 +1,5 @@
+docker push 940482415821.dkr.ecr.ca-central-1.amazonaws.com/7c8e218a8c93
+
+docker tag 7c8e218a8c93 940482415821.dkr.ecr.ca-central-1.amazonaws.com/7c8e218a8c93
+
+aws ecr get-login-password --region ca-central-1| docker login --username AWS --password-stdin 940482415821.dkr.ecr.ca-central-1.amazonaws.com
