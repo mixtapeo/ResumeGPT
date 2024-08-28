@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #212227; /* Dark background */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #e0e0e0; /* Light text color */
+        }
+        #chat-container {
+            background: #2c2c2c; /* Darker background for chat container */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Darker shadow */
+            width: 100%;
+            max-width: 800px;
+        }
+        #messages {
+            border: 1px solid #444; /* Dark border */
+            padding: 20px;
+            height: 300px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background: #3c3c3c; /* Dark background for messages */
+            font-size: 20px;
+        }
+        .message {
+            margin-bottom: 10px;
+            color: #e0e0e0; /* Light text color */
+        }
+        .message.user {
+            text-align: right;
+            color: #BDD4E7; /* Light blue for user messages */
+            font-size: 20px;
+        }
+        .message.bot {
+            text-align: left;
+            color: #BDD4E7; /* Light green for bot messages */
+            font-size: 20px;
+        }
+        #user-input {
+            display: flex;
+        }
+        #user-input input {
+            flex: 1;
+            padding: 10px;
+            font-size: 20px;
+            border: 1px solid #444; /* Dark border */
+            border-radius: 5px 0 0 5px;
+            background: #3c3c3c; /* Dark background for input */
+            color: #e0e0e0; /* Light text color */
+        }
+        #user-input button {
+            padding: 10px 15px;
+            font-size: 20px;
+            border: none;
+            background: #0b2d5f; /* Blue background for button */
+            color: white;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+        }
+        #user-input button:hover {
+            background: #0056b3; /* Darker blue on hover */
+        }
+    </style>    
+</head>
+<body>
+
+<div id="chat-container">
+    <div id="messages"></div>
+    <div id="user-input">
+        <input type="text" id="message-input" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    async function sendMessage() {
+        const input = document.getElementById('message-input');
+        const message = input.value.trim();
+        if (message === '') return;
+
+        appendMessage(message, 'user');
+        input.value = '';
+
+        try {
+            const response = await fetch('http://localhost:5000/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message }),
+                credentials: 'include'  // Include credentials to maintain session
+            });
+
+            const data = await response.json();
+            const conversationHistory = data.conversation_history;
+
+            // Find the last assistant message in the conversation history
+            const lastAssistantMessage = conversationHistory.reverse().find(msg => msg.role === 'assistant');
+
+            if (lastAssistantMessage) {
+                appendMessage(lastAssistantMessage.content, 'bot');
+            } else {
+                appendMessage('Error: No response from the assistant.', 'bot');
+            }
+        } catch (error) {
+            appendMessage('Error: Unable to communicate with the server.', 'bot');
+            console.error('Fetch error:', error);
+        }
+    }
+
+    function appendMessage(message, sender) {
+        const messagesDiv = document.getElementById('messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+        messageDiv.textContent = message;
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;  // Scroll to the bottom
+    }
+    window.addEventListener("beforeunload", function (e) {
+        fetch('http://localhost:5000/close', {
+            method: 'POST',
+            credentials: 'include'}
+        )});
+    pageAccessedByReload = (
+        (window.performance.navigation && window.performance.navigation.type === 1) ||
+            window.performance
+            .getEntriesByType('navigation')
+            .map((nav) => nav.type)
+            .includes('reload')
+        );
+
+        alert(pageAccessedByReload);
+        fetch('http://localhost:5000/close', {
+            method: 'POST',
+            credentials: 'include'}
+        );
+</script>
+
+</body>
+</html>
