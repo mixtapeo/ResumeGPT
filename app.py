@@ -1,3 +1,6 @@
+#TODO: fix formatting of the index.html output
+#TODO: make routine in aws
+
 from flask import Flask, request, jsonify, session, render_template, Blueprint
 from gpt import GPT
 import os
@@ -65,8 +68,11 @@ def close():
     User closing the program.
     """
     print('Cleaning cookie...')
-    session.pop('text')
-    return jsonify({"message": "Session cleared"}), 200
+    try:
+        session.pop('text')
+        return jsonify({"message": "Session cleared"}), 200
+    except KeyError:
+        pass
 
 if __name__ == '__main__':
     app.run(debug=True)
