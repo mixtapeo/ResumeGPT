@@ -66,11 +66,13 @@ class WildApricotAPI:
             print(e)
 
 def download_all_files():
+    if not os.path.exists('files'):
+        os.makedirs('files')
     account_id = '322042'
     api_key = os.environ.get('wildapiricot_api_key')
     api = WildApricotAPI(api_key, account_id)
-    local_path = os.path.join((os.path.join(os.getcwd(), 'app')), 'files') #./app/files
-    xml_file_path = os.path.join((os.path.join(os.getcwd(),'app')), 'Members.xml') #./app/Members.xml
+    local_path = os.path.join(os.getcwd(), 'files') #./files
+    xml_file_path = os.path.join(os.getcwd(), 'Members.xml') # ./Members.xml
 
     file_ids = api.extract_file_ids(xml_file_path)
 

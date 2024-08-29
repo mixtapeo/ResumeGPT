@@ -140,13 +140,10 @@
             .map((nav) => nav.type)
             .includes('reload')
         );
-
-        alert(pageAccessedByReload);
         fetch('http://localhost:5000/close', {
             method: 'POST',
             credentials: 'include'}
         );
 </script>
-
 </body>
 </html>

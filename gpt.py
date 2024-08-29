@@ -33,10 +33,10 @@ class GPT:
         self.client = OpenAI(api_key=api_key)
 
     def update_files(self):
+        print("Updating files from remote source...")
         ResumesDownloader.download_all_files()
         # Logic to copy and update files every 6 hours
         # This function should be called periodically
-        print("Updating files from remote source...")
         # TODO: Implement ResumesDownloader.py
 
     def extract_text_from_docx(self, file_path):
@@ -141,7 +141,7 @@ class GPT:
             print(e)
 
             # Save to file for debug
-        with open('resumeCache.txt', 'a') as file:
+        with open('resumeCache.txt', 'w') as file:
             json.dump({"GPTout": summary}, file, indent=4)
             #json.dump({"content": content}, file, indent=4) # Debug: Compare input from files to output by GPT
         return summary
@@ -152,7 +152,7 @@ class GPT:
             file.truncate()
         
         # Path to local directory containing resumes
-        directory = os.path.join(os.path.join(os.getcwd(), 'app'), 'files') #./app/files
+        directory = os.path.join(os.getcwd(), 'files') # ./files
         resumes = self.load_files(directory)
         resume_texts = [resume['text'] for resume in resumes]
 
@@ -167,7 +167,7 @@ class GPT:
         return data
 
 
-    def start_request(self, message, data, conversation_history):
+    def start_request(self, message, data, conversation_history) -> list:
         """
         Process resumes and handle conversation with GPT.
         1. Loads files as text into {resumes}
@@ -175,12 +175,13 @@ class GPT:
         3. Send user message & summarized json to GPT for response.
         """
         # Get the response from GPT, add to conversation history.
+
         context = self.gpt_request(data, message, conversation_history)
         reply, message = context
-
+        
         conversation_history.append({"role": "user", "content": message})
         conversation_history.append({"role": "assistant", "content": reply})
-
+        
         # Save the response to a JSON file
         with open('GPTout.json', 'w') as file:
             json.dump({"GPTout": reply}, file, indent=4)
