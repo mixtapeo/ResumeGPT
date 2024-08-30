@@ -1,0 +1,161 @@
+Setting up a new instance
+
+sudo apt-get update
+sudo apt-get install python3-venv
+cd /home/ubuntu
+git clone https://github.com/mixtapeo/ResumeGPT
+cd ResumeGPT
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install gunicorn
+
+cat >> .env [Opens a new file called .env, in append mode. Add the 3 env vars. ctrl+c to exit]
+
+check:
+gunicorn -b 0.0.0.0:5000 app:app 
+ctrl+c to exit
+
+sudo vi /etc/systemd/system/app.service
+
+Edit to this:
+[Unit]
+Description=Gunicorn instance for a resume gpt app
+After=network.target
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/ResumeGPT
+ExecStart=/home/ubuntu/ResumeGPT/venv/bin/gunicorn -b localhost:5000 app:app
+Restart=always
+[Install]
+WantedBy=multi-user.target
+
+save by:
+esc  ->  :  ->  wq!
+
+sudo systemctl daemon-reload
+sudo systemctl start app
+sudo systemctl enable app
+
+check its working:
+curl localhost:5000
+
+sudo apt-get install nginx
+sudo systemctl start nginx
+sudo systemctl enable nginx
+
+edit server config.
+sudo vi /etc/nginx/sites-available/default
+
+Modify to include:
+
+upstream flaskhelloworld {
+    server 127.0.0.1:5000;
+}
+
+location / {
+    proxy_pass http://flaskhelloworld;
+    try_files $uri $uri/ =404;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+}
+
+esc  ->  :  ->  wq! to save
+
+check config validity:
+sudo nginx -t
+
+Restart nginx & gunicorn to apply changes:
+sudo systemctl restart nginx
+pkill gunicorn
+
+Allow port 5000 through firewall:
+sudo ufw allow 5000/tcp
+
+ec2 virtual machine web app site should work now!
+
+Now must set up cron job to maintain routine of:
+1. downloading resumes, deleting invalid / corrupt files.
+2. summarising and creating resumeCache.txt
+
+Make sure to have Members.xml file in root dir (/home/ResumeGPT). On windows 10 for example:
+scp -i newkey.pem Members2.xml ubuntu@ec2-15-222-60-90.ca-central-1.compute.amazonaws.com:path/home/ubuntu/
+A key pair called 'newkey' which is in .pem format, copies file Memebers2.xml to /home/ubuntu/ on given instance address
+
+crontab -e
+
+* 6 * * * /home/ubuntu/ResumeGPT/routine.py()
+
+Check status with:
+systemctl status cron
+
+
+=====
+
+
+how to update with github repo link
+
+deactivate
+cd .. (get to base dir)
+rm -rf ResumeGPT
+git clone <link>
+cd ResumeGPT
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pip install gunicorn
+python3 app.py
+
+
+====
+
+
+If connecting to instance just to work with files:
+
+cd /home/ubuntu/ResumeGPT
+python3 -m venv venv
+source venv/bin/activate
+
+
+====
+
+
+Moving files from / to instance.
+
+A key value pair had been set up initially by me. You must have the .pem / .ppk file.
+
+For windows, download something like winSCP for ease of use.
+
+1. File protocol: SFTP
+2. host name: public ipv4 dns under details of instance on AWS 
+3. go to advanced > authentication > select the .ppk file
+4. Save, connect.
+
+If connecting to new instance (like when launching from AMI), replace the host name with new public DNS.
+
+Done!
+
+========
+
+debugging:
+collect running logs:
+sudo tail -f /var/log/nginx/error.log
+sudo tail -f /var/log/nginx/access.log
+
+cron
+sh
+ubuntu linux commands
+nginx
+gunicorn
+web app
+aws ec2
+html
+js
+python
+chatgpt api
+wildpapricot api
+Amazon Machine Images, launch instance, ssh
