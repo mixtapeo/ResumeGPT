@@ -1,7 +1,6 @@
 Setting up a new instance
 
-sudo apt install update
-sudo apt-get install python3-pip
+sudo apt-get update
 sudo apt-get install python3-venv
 cd /home/ubuntu
 git clone https://github.com/mixtapeo/ResumeGPT
@@ -67,9 +66,15 @@ location / {
 
 esc  ->  :  ->  wq! to save
 
+check config validity:
+sudo nginx -t
+
 Restart nginx & gunicorn to apply changes:
 sudo systemctl restart nginx
 pkill gunicorn
+
+Allow port 5000 through firewall:
+sudo ufw allow 5000/tcp
 
 ec2 virtual machine web app site should work now!
 
@@ -80,6 +85,13 @@ Now must set up cron job to maintain routine of:
 Make sure to have Members.xml file in root dir (/home/ResumeGPT). On windows 10 for example:
 scp -i newkey.pem Members2.xml ubuntu@ec2-15-222-60-90.ca-central-1.compute.amazonaws.com:path/home/ubuntu/
 A key pair called 'newkey' which is in .pem format, copies file Memebers2.xml to /home/ubuntu/ on given instance address
+
+crontab -e
+
+* 6 * * * /home/ubuntu/ResumeGPT/routine.py()
+
+Check status with:
+systemctl status cron
 
 
 =====
@@ -99,16 +111,18 @@ pip install gunicorn
 python3 app.py
 
 
-==== 
+====
+
 
 If connecting to instance just to work with files:
 
-cd ResumeGPT
+cd /home/ubuntu/ResumeGPT
 python3 -m venv venv
 source venv/bin/activate
 
 
 ====
+
 
 Moving files from / to instance.
 
@@ -124,3 +138,24 @@ For windows, download something like winSCP for ease of use.
 If connecting to new instance (like when launching from AMI), replace the host name with new public DNS.
 
 Done!
+
+========
+
+debugging:
+collect running logs:
+sudo tail -f /var/log/nginx/error.log
+sudo tail -f /var/log/nginx/access.log
+
+cron
+sh
+ubuntu linux commands
+nginx
+gunicorn
+web app
+aws ec2
+html
+js
+python
+chatgpt api
+wildpapricot api
+Amazon Machine Images, launch instance, ssh

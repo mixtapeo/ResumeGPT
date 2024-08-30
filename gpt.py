@@ -158,12 +158,13 @@ class GPT:
 
         # Separate resume text into chunks to summarize
         chunks = np.array_split(resume_texts, 3) # Change this number to change number of threads used.
+
+        GPT_inst = GPT(os.getenv('openai_api_key'))
         
-        # Process each chunk using multithreading
+        # Process each chunk
         data = ''
-        with ThreadPoolExecutor(len(chunks)) as executor:
-            data = executor.map(self.summarize, chunks)
-        
+        for chunk in chunks:
+            data += GPT_inst.summarize(chunk)
         return data
 
 

@@ -10,7 +10,7 @@ from flask.sessions import SecureCookieSessionInterface
 import datetime
 
 app = Flask(__name__)
-app.secret_key = 'mysecret'
+app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] =  datetime.timedelta(minutes=5)
 SESSION_TYPE = 'filesystem'
 app.config.from_object(__name__)

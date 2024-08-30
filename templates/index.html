@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot</title>
+    <title>SynFiny Chatbot AI</title>
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -99,7 +99,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ message: message }),
+                body: JSON.stringify({ message: message }, null, 2),
                 credentials: 'include'  // Include credentials to maintain session
             });
 
@@ -124,7 +124,7 @@
         const messagesDiv = document.getElementById('messages');
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}`;
-        messageDiv.textContent = message;
+        messageDiv.innerHTML = message;
         messagesDiv.appendChild(messageDiv);
         messagesDiv.scrollTop = messagesDiv.scrollHeight;  // Scroll to the bottom
     }
