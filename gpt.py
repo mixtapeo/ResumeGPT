@@ -2,11 +2,10 @@
 #  Uses resumes & bios from ResumeDownloader.py, interface with OpenAI GPT 4.0-Turbo, prints result & saves into GPTout.json.
 
 # TODO:
-# # [done] Copying latest files from WildApricot "SiteUploads" to local directory: Try to make it update once every 6 hours in live build under a different file
-# # [done] Extracting data from DOCX resume files
-# # Look into making the resume retrieval as a tool not as a message.
+# # Copying latest files from WildApricot "SiteUploads" to local directory: Try to make it update once every 6 hours in live build under a different file
 # # Look into making a main.py file for flask app. For example, download files, summarise resumecache every 6 hours.
 # # Drawback: Look into batch translating. Some people are missing when using multithreading chat completions GPT for summarising. Also chat completions will be unreliable in the future. Avg tokens sent for summary are ~220K. Batch will be better.
+# # Formatting of final output into index.html
 
 from openai import OpenAI
 import json
@@ -34,10 +33,10 @@ class GPT:
         self.client = OpenAI(api_key=api_key)
 
     def update_files(self):
+        print("Updating files from remote source...")
         ResumesDownloader.download_all_files()
         # Logic to copy and update files every 6 hours
         # This function should be called periodically
-        print("Updating files from remote source...")
         # TODO: Implement ResumesDownloader.py
 
     def extract_text_from_docx(self, file_path):
@@ -142,7 +141,7 @@ class GPT:
             print(e)
 
             # Save to file for debug
-        with open('resumeCache.txt', 'a') as file:
+        with open('resumeCache.txt', 'w') as file:
             json.dump({"GPTout": summary}, file, indent=4)
             #json.dump({"content": content}, file, indent=4) # Debug: Compare input from files to output by GPT
         return summary
@@ -151,47 +150,50 @@ class GPT:
         # Save to file for debug
         with open("resumeCache.txt", "w") as file:
             file.truncate()
-
+        
         # Path to local directory containing resumes
-        directory = os.path.join((os.path.join(os.getcwd(), 'app')), 'files') #./app/files
+        directory = os.path.join(os.getcwd(), 'files') # ./files
         resumes = self.load_files(directory)
         resume_texts = [resume['text'] for resume in resumes]
 
         # Separate resume text into chunks to summarize
         chunks = np.array_split(resume_texts, 3) # Change this number to change number of threads used.
+
+        GPT_inst = GPT(os.getenv('openai_api_key'))
         
-        # Process each chunk using multithreading
+        # Process each chunk
         data = ''
-        with ThreadPoolExecutor(len(chunks)) as executor:
-            data = executor.map(self.summarize, chunks)
-        
+        for chunk in chunks:
+            data += GPT_inst.summarize(chunk)
         return data
 
-    def start_request(self, message, data, conversation_history):
+
+    def start_request(self, message, data, conversation_history) -> list:
         """
         Process resumes and handle conversation with GPT.
-
         1. Loads files as text into {resumes}
-        2. Summarise all resume content to optimise tokens sent. Stored in resumeCache.json.
-        3. Send user message & summarised json to GPT for response.
+        2. Summarize all resume content to optimize tokens sent. Stored in resumeCache.json.
+        3. Send user message & summarized json to GPT for response.
         """
-
         # Get the response from GPT, add to conversation history.
-        reply, message = self.gpt_request(self, message, data, conversation_history)
-        conversation_history_update = ({"role": "user", "content": message}, {"role": "assistant", "content": reply})
+
+        context = self.gpt_request(data, message, conversation_history)
+        reply, message = context
+        
+        conversation_history.append({"role": "user", "content": message})
+        conversation_history.append({"role": "assistant", "content": reply})
         
         # Save the response to a JSON file
         with open('GPTout.json', 'w') as file:
             json.dump({"GPTout": reply}, file, indent=4)
-        
+
         # Pretty print the final result
         with open('GPTout.json', 'r') as j:
             contents = json.loads(j.read())
         build_direction = "LEFT_TO_RIGHT"
         table_attributes = {"style": "width:100%"}
         # print(json2table.convert(contents, build_direction=build_direction, table_attributes=table_attributes))
-
-        return conversation_history_update
+        return conversation_history
 
     def user_start(self):
         """

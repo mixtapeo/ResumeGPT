@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SynFiny Chatbot AI</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #212227; /* Dark background */
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #e0e0e0; /* Light text color */
+        }
+        #chat-container {
+            background: #2c2c2c; /* Darker background for chat container */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Darker shadow */
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            height: 80vh; /* Adjust height to fit more messages */
+        }
+        #messages {
+            border: 1px solid #444; /* Dark border */
+            padding: 20px;
+            flex: 1; /* Allow the messages area to grow */
+            overflow-y: auto;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background: #3c3c3c; /* Dark background for messages */
+            font-size: 20px;
+        }
+        .message {
+            margin-bottom: 10px;
+            color: #e0e0e0; /* Light text color */
+        }
+        .message.user {
+            text-align: right;
+            color: #BDD4E7; /* Light blue for user messages */
+        }
+        .message.bot {
+            text-align: left;
+            color: #BDD4E7; /* Light green for bot messages */
+        }
+        #user-input {
+            display: flex;
+        }
+        #user-input input {
+            flex: 1;
+            padding: 15px; /* Larger input box */
+            font-size: 20px;
+            border: 1px solid #444; /* Dark border */
+            border-radius: 5px 0 0 5px;
+            background: #3c3c3c; /* Dark background for input */
+            color: #e0e0e0; /* Light text color */
+            height: 50px; /* Increase input height */
+        }
+        #user-input button {
+            padding: 15px;
+            font-size: 20px;
+            border: none;
+            background: #0b2d5f; /* Blue background for button */
+            color: white;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+        }
+        #user-input button:hover {
+            background: #0056b3; /* Darker blue on hover */
+        }
+    </style>    
+</head>
+<body>
+
+<div id="chat-container">
+    <div id="messages"></div>
+    <div id="user-input">
+        <input type="text" id="message-input" placeholder="Type a message..." onkeypress="handleKeyPress(event)" />
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    async function sendMessage() {
+        const input = document.getElementById('message-input');
+        const message = input.value.trim();
+        if (message === '') return;
+
+        appendMessage(message, 'user');
+        input.value = '';
+
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                mode: 'cors',  // Allow cross-origin requests
+                credentials: 'include',  // Include credentials in the request
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message }, null, 2),
+            });
+            const data = await response.json();
+            const conversationHistory = data.conversation_history;
+            const lastAssistantMessage = conversationHistory.reverse().find(msg => msg.role === 'assistant');
+            console.log(response);
+            if (lastAssistantMessage) {
+                displayResponse(lastAssistantMessage.content);
+            } else {
+                appendMessage('Error: No response from the assistant.', 'bot');
+            }
+        } catch (error) {
+            appendMessage('Error: Unable to communicate with the server.', 'bot');
+            console.error('Fetch error:', error);
+        }   
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    function displayResponse(content) {
+        if (Array.isArray(content)) {
+            content.forEach(item => appendMessage(formatMessage(item), 'bot'));
+        } else if (typeof content === 'object' && content !== null) {
+            Object.entries(content).forEach(([key, value]) => {
+                appendMessage(`<strong>${key}</strong>: ${formatMessage(value)}`, 'bot');
+            });
+        } else {
+            appendMessage(formatMessage(content), 'bot');
+        }
+    }
+
+    function formatMessage(message) {
+        // Replace **text** with bold
+        message = message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // Replace \n with <br> for new lines
+        message = message.replace(/\n/g, '<br>');
+        return message;
+    }
+
+    function appendMessage(message, sender) {
+        const messagesDiv = document.getElementById('messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+        messageDiv.innerHTML = message;
+        messagesDiv.appendChild(messageDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    window.addEventListener("beforeunload", function () {
+        fetch('/close', {
+            method: 'POST',
+            credentials: 'include',  // Make sure to include credentials if necessary
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+    });
+
+    const pageAccessedByReload = (
+        (window.performance.navigation && window.performance.navigation.type === 1) ||
+        window.performance
+            .getEntriesByType('navigation')
+            .map((nav) => nav.type)
+            .includes('reload')
+    );
+    fetch('/close', {
+            mode:'no-cors',
+            method: 'POST',
+            credentials: 'include',  // Make sure to include credentials if necessary
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+</script>
+
+
+</body>
+</html>
