@@ -188,7 +188,8 @@ To maintain routine tasks:
    Example command to upload from Windows:
 
    ```bash
-   scp -i newkey.pem Members2.xml ubuntu@ec2-15-222-60-90.ca-central-1.compute.amazonaws.com:/home/ubuntu/
+   scp -i newkey.pem Members.xml ubuntu@ec2-15-222-60-90.ca-central-1.compute.amazonaws.com:/home/ubuntu/
+   Or just use WinSCP (easy, recommended).
    ```
 
 2. **Set up the cron job:**
@@ -200,13 +201,16 @@ To maintain routine tasks:
    Add the following line:
 
    ```bash
-   * 6 * * * /home/ubuntu/ResumeGPT/routine.py()
+   * 6 * * * cd /home/ubuntu/ResumeGPT; source venv/bin/activate; python3 routine.py
    ```
 
    Check status with:
 
    ```bash
    systemctl status cron
+
+   And should be working when you run this:
+   crontab -l | grep -v '^#' | cut -f 6- -d ' ' | while read CMD; do eval $CMD; done
    ```
 
 ## Updating the Application
