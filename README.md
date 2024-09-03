@@ -276,7 +276,8 @@ sudo tail -f /var/log/nginx/access.log
 
 ## Future TODOs:
 
-- **Batch Translating**: Investigate batch translating as some members are missing when using ChatGPT completions for summarizing. Average tokens sent for summary are ~220K, so batch processing may be more efficient.
+- [DONE] **Batch Translating**: Investigate batch translating as some members are missing when using ChatGPT completions for summarizing. Average tokens sent for summary are ~220K, so batch processing may be more efficient.
+   - Look into translating it again. The GPT is slow in reply due to large amount of content passed through. Look into assistants API: uses vector storage instead of traditional; much faster data processing.
 - **HTTPS / iframe embed**: (TLDR; HTTPS setup required) Cannot iframe embed into wildapricot, as currently without SSL cerificate, can't make site HTTPS, which is required to be embeded according to WildApricot. Suggestions: install SSL certificate by buying a domain or investigate hosting code on Amaazon AppRunner or Google equivalent (google run seems to be easier).
   
 ## App Flows
