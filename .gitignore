@@ -10,3 +10,6 @@ archive/
 #.json
 .env
 content.txt
+*.jsonl
+test.py
+routine.sh

@@ -18,7 +18,8 @@ from dotenv import load_dotenv
 import os
 import ResumesDownloader
 import datetime
-from concurrent.futures import ThreadPoolExecutor
+import time
+import random
 
 """
 How the program works:
@@ -26,18 +27,13 @@ How the program works:
     2. Message is sent as argument to chatgpt.
     3. conversation history is appended to conversation_history (to keep context / memory of previous conversation throughout chat)
     4. step 2. and 3. repeated until end.
+
+Also has utility function of create_batch_summary to summarize all resumes in one go.
 """
 
 class GPT:
     def __init__(self, api_key):
         self.client = OpenAI(api_key=api_key)
-
-    def update_files(self):
-        print("Updating files from remote source...")
-        ResumesDownloader.download_all_files()
-        # Logic to copy and update files every 6 hours
-        # This function should be called periodically
-        # TODO: Implement ResumesDownloader.py
 
     def extract_text_from_docx(self, file_path):
         """
@@ -119,54 +115,168 @@ class GPT:
         context = [reply, message]
         return context
     
-    def summarize(self, content):
+
         """
         Summarize given content.
         """
         print('Summarising')
-
+    
         try:
-            content = np.array2string(content, separator=', ')
-            completion = self.client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": "Summarize the following text. Include name, email, qualifications, work experience, skills and education. Remove newlines."},
-                    {"role": "system", "content": content},
-                ],
-                stream=False,
+            batch_input_file_id = batch_input_file.id
+            
+            # This request will return a Batch object with metadata about your batch:
+            batch = GPT.client.batches.create(
+                input_file_id=batch_input_file_id,
+                endpoint="/v1/chat/completions",
+                completion_window="24h",
+                metadata={
+                "description": "nightly eval job"
+                }
             )
-            summary = ""
-            summary += completion.choices[0].message.content
+
+            # Get batch id from batch report above
+            batch_id = batch[0]['id']
+            
+            # Wait for batch to complete.
+            while loop:
+                batch = GPT.client.batches.retrieve(batch_id)
+                if batch[0]['status'] == 'completed':
+                    loop = False
+                if batch[0]['status'] == 'failed':
+                    raise Exception('Batch failed')
+                datetime.time.sleep(60) # Wait 60 seconds before checking again
+            
+            file_response = GPT.client.files.content("file-xyz123")
+
         except Exception as e:
             print(e)
 
             # Save to file for debug
-        with open('resumeCache.txt', 'w') as file:
-            json.dump({"GPTout": summary}, file, indent=4)
+        with open('resumeCache.jsonl', 'w') as file:
+            json.dump({"GPTout": file_response.text}, file, indent=4)
             #json.dump({"content": content}, file, indent=4) # Debug: Compare input from files to output by GPT
-        return summary
+        return file_response.text
 
+    def create_batch_summary(self): 
+        def create_batch_file(content, request_id):
+            """
+            Create a batch file for the given content.
+            """
+            preamble = {"custom_id": request_id,
+                        "method": "POST",
+                        "url": "/v1/chat/completions",
+                        "body": {
+                            "model": "gpt-4o-mini",
+                            "messages": [
+                            {
+                                "role": "system", 
+                                "content": "Summarize the following resumes. Include name, email, qualifications, work experience, skills and education. Remove irrelevant information like formatting."
+                            },
+                            {"role": "system", "content": content},
+                        ],
+                    }
+                }
+            return preamble
+        
+        # # Adding as requried: request for each 'content'
+        directory = os.path.join(os.getcwd(), 'files') # ./files
+        resumes = self.load_files(directory)
+        open('batchrequest.jsonl', 'w').close() # Clear file
+
+        print('Writing to file')      
+        for resumes_text in resumes:
+            text = (resumes_text['text']).replace('\n', '')
+            with open('batchrequest.jsonl', 'a') as batchfile:
+                    #line = json.loads(total_text)
+                    request_id = f'request-{random.randint(0,200000)}' # Random ID for request
+                    batchfile.write(json.dumps(create_batch_file(text, request_id)) + '\n')
+        
+        # Upload batch request to OpenAI
+        batch_file = self.client.files.create(
+                        file=open('batchrequest.jsonl', "rb"),
+                        purpose="batch"
+                )
+        
+        # Creating the batch job
+        GPT_inst = GPT(os.getenv('OPENAI_API_KEY'))
+        batch_job = GPT_inst.client.batches.create(
+            input_file_id=batch_file.id,
+            endpoint="/v1/chat/completions",
+            completion_window="24h"
+            )
+        
+        # Wait for batch to complete.
+        loop = True
+        while loop:
+            batch_job = self.client.batches.retrieve(batch_job.id)
+            if batch_job.status == 'completed':
+                loop = False
+            if batch_job.status == 'failed':
+                raise Exception('Batch failed')
+            else:
+                print(f"Waiting for batch to complete. Current status: {batch_job.status}")
+                time.sleep(15) # Wait 15 seconds before checking again
+                
+        # Retrieving and storing resulted content: Input file has raw output from OpenAI, outputfile has cleaned up content.
+        result_file_id = batch_job.output_file_id
+        result = GPT_inst.client.files.content(result_file_id).content
+        temp_store = "resumeCacheTemp.jsonl"
+        result_file_name = "resumeCache.jsonl"
+
+        open(temp_store, 'wb').close() # Clear file
+        with open(temp_store, 'wb') as file:
+            file.write(result)
+        
+        # Prepare the output file
+        open(result_file_name, 'wb').close()  # Clear file
+
+        with open(temp_store, 'r') as input_file, open(result_file_name, 'w') as output_file:
+            for line in input_file:
+                # Parse each line as JSON
+                json_object = json.loads(line.strip())
+                
+                # Extract the desired content
+                content = json_object.get("response", {}).get("body", {}).get("choices", [{}])[0].get("message", {}).get("content", "")
+                
+                # Write the extracted content as a new JSON line
+                if content:  # Ensure content exists
+                    json_line = json.dumps({"content": content})
+                    output_file.write(json_line + '\n')
+
+        os.remove(temp_store) # Remove temp file
+
+        # Loading data from saved file
+        results = []
+        with open(result_file_name, 'r') as file:
+            for line in file:
+                # Parsing the JSON string into a dict and appending to the list of results
+                json_object = json.loads(line.strip())
+                results.append(json_object)
+        
+        return results
+    
     def refresh_summary(self):
         # Save to file for debug
-        with open("resumeCache.txt", "w") as file:
+        with open("resumeCache.jsonl", "w") as file:
             file.truncate()
         
         # Path to local directory containing resumes
         directory = os.path.join(os.getcwd(), 'files') # ./files
         resumes = self.load_files(directory)
-        resume_texts = [resume['text'] for resume in resumes]
-
-        # Separate resume text into chunks to summarize
-        chunks = np.array_split(resume_texts, 3) # Change this number to change number of threads used.
+        resume_text = [resume['text'] for resume in resumes]
 
         GPT_inst = GPT(os.getenv('openai_api_key'))
-        
-        # Process each chunk
-        data = ''
-        for chunk in chunks:
-            data += GPT_inst.summarize(chunk)
-        return data
 
+        with open('resumeCacheBatch.jsonl', 'w') as file:
+            json.dump({"text": resume_text}, file, indent=4)
+
+        batch_input_file = GPT_inst.client.files.create(
+                        file=open((os.path.join(os.getcwd(),"resumeCacheBatch.jsonl")), "rb"),
+                        purpose="batch"
+                    )
+        
+        data = GPT_inst.summarize(batch_input_file)
+        return data
 
     def start_request(self, message, data, conversation_history) -> list:
         """
@@ -199,8 +309,8 @@ class GPT:
         """
         User interface for starting the program.
         """
-        # Load resumeCache.txt data
-        with open('resumeCache.txt') as f:
+        # Load resumeCache.jsonl data
+        with open('resumeCache.jsonl') as f:
                 data = f.readlines()
 
         # Loop forever
@@ -228,7 +338,7 @@ def dev_start():
         print("Summary cache refreshed.")
     else:
         print('Loaded previous data.')
-        with open('resumeCache.txt') as f:
+        with open('resumeCache.jsonl') as f:
             data = f.readlines()
 
     # Loop forever

@@ -31,10 +31,10 @@ def start_program():
     session.setdefault('text', [])
 
     try:
-        with open('resumeCache.txt') as f:
+        with open('resumeCache.jsonl') as f:
             data = f.readlines()
     except FileNotFoundError:
-        return jsonify({"error": "resumeCache.txt failed / doesn't exist. Kindly report to techsupport@synfiny.com"}), 400
+        return jsonify({"error": "resumeCache.jsonl failed / doesn't exist. Kindly report to techsupport@synfiny.com"}), 400
 
     # Retrieve conversation history from session
     cookie = session.get('text', [])
