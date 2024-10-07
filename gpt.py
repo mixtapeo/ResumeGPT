@@ -115,7 +115,7 @@ class GPT:
         context = [reply, message]
         return context
     
-
+    def summarize(self, batch_input_file):
         """
         Summarize given content.
         """
