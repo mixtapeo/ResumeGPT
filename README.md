@@ -1,3 +1,4 @@
+
 # ResumeGPT
 
 A GPT 4.0 Mini-powered chatbot that processes and summarizes resumes, integrated with WildApricot to pull and manage member data. It is deployed on an AWS EC2 Ubuntu instance with a Flask web server, managed using Gunicorn and Nginx.
@@ -273,15 +274,10 @@ sudo tail -f /var/log/nginx/access.log
 - **HTML**
 - **JavaScript**
 - **Python**
-- **ChatGPT API**
+- **OpenAI API: Batch requests, Chat completions**
 - **WildApricot API**
 - **Amazon Machine Images (AMI)**
 - **SSH**
-
-## Future TODOs:
-
-- **Batch Translating**: Investigate batch translating as some members are missing when using ChatGPT completions for summarizing. Average tokens sent for summary are ~220K, so batch processing may be more efficient.
-- **HTTPS / iframe embed**: (TLDR; HTTPS setup required) Cannot iframe embed into wildapricot, as currently without SSL cerificate, can't make site HTTPS, which is required to be embeded according to WildApricot. Suggestions: install SSL certificate by buying a domain or investigate hosting code on Amaazon AppRunner or Google equivalent (google run seems to be easier).
   
 ## App Flows
 ### Current Web App Flow.
@@ -295,8 +291,5 @@ Look at older flow below if using in local environment.
   <img src="https://github.com/user-attachments/assets/44b8c8f5-0b43-445e-b432-4ebcfed9bf96" />
 </p>
 
-## III: Future TODOs:
-Drawback: Look into batch translating. Some people are missing when using multithreading chat completions GPT for summarising. Also chat completions will be unreliable in the future. Avg tokens sent for summary are ~220K. Batch will be better.<br />
-Automating resumeCache and downloading resumes. Currently doesnt do this, have to manually run gpt.py.
 ## App Flow:
 <p align="center"> <img src="https://github.com/user-attachments/assets/44b8c8f5-0b43-445e-b432-4ebcfed9bf96" /> </p>
