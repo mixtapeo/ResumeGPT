@@ -1,3 +1,4 @@
+[![HitCount](https://hits.dwyl.com/mixtapeo/ResumeGPT.svg?style=flat&show=unique)](http://hits.dwyl.com/mixtapeo/ResumeGPT)
 
 # ResumeGPT
 
